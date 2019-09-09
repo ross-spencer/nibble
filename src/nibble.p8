@@ -97,8 +97,8 @@ function _draw()
 		draw_bad()
 	 draw_good()
 	 --collision detection
-	 ifbad(nibble)
-	 ifgood(nibble)
+	 b=ifbad(nibble)
+	 g=ifgood(nibble)
 	 --score output
 	 output_score()
 	 output_item() 		
@@ -154,12 +154,12 @@ mode="⌂"
 _mode=0
 max_mode=3
 modes={
- "⌂", --0
- "✽", --1
- "☉", --2
- "😐", --3
- "◆", --4
- "웃", --5
+ "⌂", --0 
+ "✽", --1 
+ "☉", --2 
+ "😐", --3 
+ "◆", --4 
+ "웃", --5 
 }
 
 function _set_mode_x()
@@ -464,20 +464,23 @@ function sort_x(t)
    	end
    end
  end
- if c then
-	 del(t, c)
-	 score=score-c.score
-	 c=nil
-	 sfx(9)
-	 return true
-	end
+ return c
 end
 
 function hit_em_up()
- del_ = sort_x(good_t)
- if not del_ then
-	 sort_x(bad_t) 
-	end
+ g = sort_x(good_t)
+	b = sort_x(bad_t) 
+ if g and b then
+  if g.xpos < b.xpos then
+   del(good_t, g)
+  else
+   del(bad_t, b)
+  end
+ elseif b then
+  del(bad_t, b)
+ elseif g then
+  del(good_t, g)
+ end
 end
 -->8
 --score functions and dashboard
@@ -702,7 +705,6 @@ function draw_monitoring()
 	  monitor_t=0
   end
 		if (btnp(4)) then
-	  monitor_t=10
    sfx(monitor_.sound)
    hit_em_up()
 			item=monitor_.name
@@ -752,8 +754,8 @@ function destroy_mem()
   printh("chaos destroy") 
   chaos_destroy()
  elseif _mode==3 then
-  printh("null destroy") 
-  null_destroy()  
+  printh("block destroy") 
+  block_destroy()  
  end
 end
 
@@ -772,13 +774,11 @@ function sprite_destroy()
  local blocksize=20
  local loc=0
  for i=0,blocksize do
-  if not mode then
-   loc = flr(rnd(max_mem))
-  else
-   loc=#state+15
-  end
-  for x in all(state) do
-   if x.pos == loc then
+  loc=#state+15
+  for memloc in all(state) do
+   if memloc.pos == loc then
+ 	 	--try not to destroy the
+	 	 --same position in memory.   
     sprite_destroy()
    end
   end
@@ -798,10 +798,7 @@ function chaos_destroy()
  local memloc = flr(rnd(max_mem))
  for x = loop,loop+15 do
  	if memloc < max_mem then
-   --printh("loop: " .. loop) 
   	poke(memloc, col)
-	  --printh(memloc)
- 	 --printh(peek(memloc))
 			memloc = flr(rnd(max_mem)) 	 
  	 loop+=1
   else
@@ -810,7 +807,7 @@ function chaos_destroy()
  end 
 end
 
-function null_destroy()
+function block_destroy()
  n={55,56,57,58,59,60,61}
  col=n[flr(rnd(#n))+1]
  max_mem=32727
@@ -818,10 +815,7 @@ function null_destroy()
  local memloc = flr(rnd(max_mem))
  for x = loop,loop+30 do
  	if memloc < max_mem then
-   --printh("loop: " .. loop) 
   	poke(memloc, col)
-	  --printh(memloc)
- 	 --printh(peek(memloc))
 			memloc = flr(rnd(max_mem)) 	 
  	 loop+=1
   else
@@ -834,10 +828,12 @@ end
 function sprite_fix()
  local blocksize=5
  if #state > 0 then
-  for x=0,blocksize do
-   poke(state[1].pos,state[1].val)
+  for x=0,blocksize do   
+   poke(state[1].pos,state[1].val)   
    --this is breaking when
-   --state[1]
+   --state[1] so currently
+   --not enabled, i.e. 0 
+   --doesn't exist.
    del(state,state[0])
   end  
  end
